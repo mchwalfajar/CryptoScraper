@@ -1,0 +1,11 @@
+{
+  "name": "bscrape",
+  "version": "1.0.0",
+  "description": "Bitcoin Data Scraper",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "zech",
+  "license": "ISC"
+}
