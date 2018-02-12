@@ -1,4 +1,5 @@
 const https = require('https');
+const http = require('http');
 const {exec} = require('child_process');
 var url = 'https://api.coindesk.com/v1/bpi/currentprice.json';
 var blockchain = 'https://blockchain.info/ticker';
@@ -6,15 +7,37 @@ var coinbase = 'https://api.coinbase.com/v2/prices/BTC-USD/buy';
 var coinbases = 'https://api.coinbase.com/v2/prices/BTC-USD/sell';
 var influx = 'https://10.0.0.21:8086/write?db=bitcoin';
 
+var hostname = "10.0.0.21";
+var portnum = 8086;
+
 var opt = {
 	host: 'https://10.0.0.21',
 	port: 8086,
-	path: '/write?db=bitcoin',
+	path: '/write?db=cointesting',
 	method: 'GET',
 	headers: {
 		'Content-Type': 'application/x-www-form-urlencoded'
 	}
 };
+
+function influxIt(measurement, value){
+	var data = measurement + " value=" + value;
+	var opt = {
+		host: hostname,
+		port: portnum,
+		path: '/write?db=cointesting',
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Length': Buffer.byteLength(data)
+		}
+	};
+
+	const req = http.request(opt, (res) => {
+	});
+	req.write(data);
+	req.end();
+}
 
 function logData(){
 	
@@ -26,11 +49,7 @@ function logData(){
 
 		resp.on('end', () =>{
 			var price = JSON.parse(data).data.amount;
-			exec("curl -i -XPOST 'http://10.0.0.21:8086/write?db=bitcoin' --data-binary 'coinbasesell value="+price+"'", (err, stdout, stderr) =>{
-				if(err){
-					console.log("error " + err.message);
-				}
-			});		
+			influxIt("coinbasesell", price);
 		});
 		}).on("error", (err) => {
 			console.log("Some error: " + err.message);
@@ -44,11 +63,7 @@ function logData(){
 
 		resp.on('end', () =>{
 			var price = JSON.parse(data).data.amount;
-			exec("curl -i -XPOST 'http://10.0.0.21:8086/write?db=bitcoin' --data-binary 'coinbasebuy value="+price+"'", (err, stdout, stderr) =>{
-				if(err){
-					console.log("error " + err.message);
-				}
-			});		
+			influxIt("coinbasebuy", price);
 		});
 		}).on("error", (err) => {
 			console.log("Some error: " + err.message);
@@ -64,11 +79,7 @@ function logData(){
 			var price = JSON.parse(data).USD.last;
 			var dp = JSON.parse(data).USD['15m'];
 			//console.log("Blockchain price: " + price);
-			exec("curl -i -XPOST 'http://10.0.0.21:8086/write?db=bitcoin' --data-binary 'blockchainlast value="+price+" \n blockchain15m value="+dp+"'", (err, stdout, stderr) =>{
-				if(err){
-					console.log("error " + err.message);
-				}
-			});		
+			influxIt("blockchain", price);		
 		});
 		}).on("error", (err) => {
 			console.log("Some error: " + err.message);
@@ -83,13 +94,7 @@ function logData(){
 		resp.on('end', () =>{
 			//console.log(JSON.parse(data).bpi.USD.rate_float);
 			var price = JSON.parse(data).bpi.USD.rate_float;
-			//console.log("coindesk price: " + price);
-			exec("curl -i -XPOST 'http://10.0.0.21:8086/write?db=bitcoin' --data-binary 'coindeskprice value="+price+"'", (err, stdout, stderr) =>{
-			//exec("curl -i -XPOST \'" + influx + "\' --data-binary \'coindesk-price value=" + price + "\'", (err, stdout, stderr) =>{
-				if(err){
-					console.log("Error " + err.message);
-				}
-			});  
+			influxIt("coindesk", price);
 			
 		});
 	}).on("error", (err) => {
