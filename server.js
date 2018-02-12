@@ -7,9 +7,11 @@ var coinbase = 'https://api.coinbase.com/v2/prices/BTC-USD/buy';
 var coinbases = 'https://api.coinbase.com/v2/prices/BTC-USD/sell';
 var influx = 'https://10.0.0.21:8086/write?db=bitcoin';
 
+
+//InfluxDB Server data
 var hostname = "10.0.0.21";
 var portnum = 8086;
-
+var db = "cointesting";
 var opt = {
 	host: 'https://10.0.0.21',
 	port: 8086,
@@ -25,7 +27,7 @@ function influxIt(measurement, value){
 	var opt = {
 		host: hostname,
 		port: portnum,
-		path: '/write?db=cointesting',
+		path: '/write?db=' + db,
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/x-www-form-urlencoded',
